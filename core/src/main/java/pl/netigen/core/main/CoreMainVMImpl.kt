@@ -6,6 +6,7 @@ import pl.netigen.coreapi.ads.IAds
 import pl.netigen.coreapi.gdpr.GDPRConfig
 import pl.netigen.coreapi.gdpr.IGDPRConsent
 import pl.netigen.coreapi.main.CoreMainVM
+import pl.netigen.coreapi.main.IAppConfig
 import pl.netigen.coreapi.network.INetworkStatus
 import pl.netigen.coreapi.payments.IPayments
 import pl.netigen.extensions.MutableSingleLiveEvent
@@ -17,9 +18,10 @@ class CoreMainVmImpl(
         val payments: IPayments,
         val networkStatus: INetworkStatus,
         gdprConsent: IGDPRConsent,
-        override val gdprConfig: GDPRConfig
+        override val gdprConfig: GDPRConfig,
+        appConfig: IAppConfig
 ) : CoreMainVM(application), IPayments by payments, IAds by ads, INetworkStatus by networkStatus,
-        IGDPRConsent by gdprConsent {
+        IGDPRConsent by gdprConsent, IAppConfig by appConfig {
 
     override fun start() {
         launchMain { payments.noAdsActive.collect { onNoAdsChange(it) } }

@@ -7,7 +7,7 @@ import pl.netigen.coreapi.network.INetworkStatus
 import pl.netigen.coreapi.payments.IPayments
 import pl.netigen.extensions.SingleLiveEvent
 
-interface ICoreMainVM : IPayments, IAds, INetworkStatus, IGDPRConsent {
+interface ICoreMainVM : IPayments, IAds, INetworkStatus, IGDPRConsent, IAppConfig {
     fun start()
     fun resetAdsPreferences()
 
