@@ -8,3 +8,4 @@ interface IGDPRConsent {
     fun requestGDPRLocation(): Flow<CheckGDPRLocationStatus>
     fun saveAdConsentStatus(adConsentStatus: AdConsentStatus)
 }
+
