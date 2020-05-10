@@ -13,5 +13,4 @@ interface ICoreMainVM : IPayments, IAds, INetworkStatus, IGDPRConsent, IAppConfi
 
     val showGdprResetAds: SingleLiveEvent<Unit>
     val currentIsNoAdsActive: Boolean
-    val gdprConfig: GDPRConfig
 }
