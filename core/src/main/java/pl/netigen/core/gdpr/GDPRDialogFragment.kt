@@ -5,14 +5,11 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.PorterDuff
-import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
-import android.text.SpannableString
 import android.text.method.ScrollingMovementMethod
-import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,22 +17,24 @@ import android.view.Window
 import android.webkit.WebView
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatDialogFragment
-import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.dialog_fragment_gdpr.*
 import pl.netigen.core.R
+import pl.netigen.coreapi.gdpr.GDPRConfig
 import pl.netigen.extensions.setDialogSizeAsMatchParent
 import pl.netigen.extensions.setTint
 
 class GDPRDialogFragment : AppCompatDialogFragment() {
-    companion object {
-        private const val NETIGEN_PRIVACY_FOR_PACKAGE_NAME_URL = "https://www.netigen.pl/privacy/only-for-mobile-apps-name?app="
-        private const val NETIGEN_APP_COLOR = "&color="
-        private const val INSIDE_WEB_VIEW_MARGIN_0 = "&containerPadding=0&bodyMargin=0"
-        private const val NETIGEN_PRIVACY_MOBILE_URL = "https://www.netigen.pl/privacy/only-for-mobile-apps?app=2"
 
-        fun newInstance(): GDPRDialogFragment {
+    companion object {
+        private const val CONFIG_ID = "CONFIG_ID"
+
+        fun newInstance(config: GDPRConfig): GDPRDialogFragment {
             val dialogFragment = GDPRDialogFragment()
             dialogFragment.isCancelable = false
+            val args = Bundle().apply {
+                putParcelable(CONFIG_ID, config)
+            }
+            dialogFragment.arguments = args
             return dialogFragment
         }
     }
@@ -44,8 +43,13 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
     private var gdprClickListener: GDPRClickListener? = null
     private var admobText: Boolean = false
     private var webViewGdpr: WebView? = null
+    private lateinit var gdprConfig: GDPRConfig
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
+    ): View? {
         if (dialog != null) {
             val window = dialog?.window
             if (window != null) {
@@ -54,6 +58,9 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
             }
         }
 
+        arguments?.getParcelable<GDPRConfig>(CONFIG_ID)?.let {
+            gdprConfig = it
+        }
         val view = inflater.inflate(R.layout.dialog_fragment_gdpr, container, false)
         createWebView(view)
         return view
@@ -95,9 +102,21 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
             buttonYes.background.setTint(it, R.color.dialog_accent, PorterDuff.Mode.MULTIPLY)
             buttonPolicy.background.setTint(it, R.color.dialog_accent, PorterDuff.Mode.MULTIPLY)
 
-            buttonNo.background.setTint(it, R.color.dialog_neutral_button_bg, PorterDuff.Mode.MULTIPLY)
-            buttonPay.background.setTint(it, R.color.dialog_neutral_button_bg, PorterDuff.Mode.MULTIPLY)
-            buttonBack.background.setTint(it, R.color.dialog_neutral_button_bg, PorterDuff.Mode.MULTIPLY)
+            buttonNo.background.setTint(
+                    it,
+                    R.color.dialog_neutral_button_bg,
+                    PorterDuff.Mode.MULTIPLY
+            )
+            buttonPay.background.setTint(
+                    it,
+                    R.color.dialog_neutral_button_bg,
+                    PorterDuff.Mode.MULTIPLY
+            )
+            buttonBack.background.setTint(
+                    it,
+                    R.color.dialog_neutral_button_bg,
+                    PorterDuff.Mode.MULTIPLY
+            )
         }
     }
 
@@ -136,7 +155,9 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
     private fun getApplicationName(context: Context): String {
         val applicationInfo = context.applicationInfo
         val stringId = applicationInfo.labelRes
-        return if (stringId == 0) applicationInfo.nonLocalizedLabel.toString() else context.getString(stringId)
+        return if (stringId == 0) applicationInfo.nonLocalizedLabel.toString() else context.getString(
+                stringId
+        )
     }
 
     fun setIsPayOptions(isNoAdsAvailable: Boolean) {
@@ -159,7 +180,7 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
         if (isNetworkOn()) {
             offlinePrivacyPolicyTextView.visibility = View.GONE
             webViewGdpr?.visibility = View.VISIBLE
-            webViewGdpr?.loadUrl(getLinkForPrivacy())
+            webViewGdpr?.loadUrl(gdprConfig.gdprLink(context))
         } else {
             webViewGdpr?.visibility = View.GONE
             offlinePrivacyPolicyTextView.visibility = View.VISIBLE
@@ -171,23 +192,15 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
         if (context == null) {
             return false
         }
-        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-            ?: return false
+        val connectivityManager =
+                context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+                        ?: return false
         val netInfo = connectivityManager.activeNetworkInfo
         return netInfo != null && netInfo.isConnectedOrConnecting
     }
 
     private fun setOfflineText() {
-        offlinePrivacyPolicyTextView.text = ""
-        val ss1 = SpannableString(ConstGDPR.text1)
-        ss1.setSpan(StyleSpan(Typeface.BOLD), 0, ss1.length, 0)
-        val ss2 = SpannableString(ConstGDPR.text3)
-        ss2.setSpan(StyleSpan(Typeface.BOLD), 0, ss2.length, 0)
-        offlinePrivacyPolicyTextView.append(ss1)
-        offlinePrivacyPolicyTextView.append(ConstGDPR.text2 + "\n")
-        offlinePrivacyPolicyTextView.append(ss2)
-        offlinePrivacyPolicyTextView.append(ConstGDPR.text4 + "\n")
-        offlinePrivacyPolicyTextView.append(ConstGDPR.text5 + "\n")
+        offlinePrivacyPolicyTextView.text = gdprConfig.privacyOfflineText(context)
     }
 
     private fun showPrivacyPolicy() {
@@ -202,7 +215,7 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
         if (isNetworkOn()) {
             offlinePrivacyPolicyTextView.visibility = View.GONE
             webViewGdpr?.visibility = View.VISIBLE
-            webViewGdpr?.loadUrl(getLinkForMobiles())
+            webViewGdpr?.loadUrl(gdprConfig.privacyLink(context))
         } else {
             webViewGdpr?.visibility = View.GONE
             offlinePrivacyPolicyTextView.visibility = View.VISIBLE
@@ -212,9 +225,7 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
     }
 
     private fun onNoInternetConnection() {
-        offlinePrivacyPolicyTextView.text = ""
-        offlinePrivacyPolicyTextView.append(ConstGDPR.textPolicy1 + "\n")
-        offlinePrivacyPolicyTextView.append(ConstGDPR.textPolicy2)
+        offlinePrivacyPolicyTextView.append(gdprConfig.gdprOfflineText(context))
     }
 
     private fun setScrollToOfflinePolicy() {
@@ -236,24 +247,16 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
         this.gdprClickListener = gdprClickListener
     }
 
-    private fun getLinkForPrivacy(): String {
-        var link = NETIGEN_PRIVACY_FOR_PACKAGE_NAME_URL
-
-        context?.let {
-            val netigenApiAccentColor =
-                String.format("#%06x", ContextCompat.getColor(it, R.color.dialog_accent) and 0xffffff).replace("#", "")
-            link =
-                NETIGEN_PRIVACY_FOR_PACKAGE_NAME_URL + getApplicationName(it) + NETIGEN_APP_COLOR + netigenApiAccentColor + INSIDE_WEB_VIEW_MARGIN_0
-        }
-
-        return link
-    }
-
-    private fun getLinkForMobiles() = NETIGEN_PRIVACY_MOBILE_URL + INSIDE_WEB_VIEW_MARGIN_0
-
     interface GDPRClickListener {
         fun onConsentAccepted(personalizedAds: Boolean)
 
         fun clickPay()
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        savedInstanceState?.getParcelable<GDPRConfig>(CONFIG_ID)?.let {
+            gdprConfig = it
+        }
     }
 }

@@ -52,7 +52,7 @@ abstract class CoreSplashFragment : NetigenFragment(), GDPRDialogFragment.GDPRCl
             return
         }
         val fragment =
-            requireActivity().supportFragmentManager.findFragmentByTag(GDPR_POP_UP_TAG) as GDPRDialogFragment?
+                requireActivity().supportFragmentManager.findFragmentByTag(GDPR_POP_UP_TAG) as GDPRDialogFragment?
         if (fragment != null) {
             onGdprPopupVisible(fragment)
         } else {
@@ -74,11 +74,11 @@ abstract class CoreSplashFragment : NetigenFragment(), GDPRDialogFragment.GDPRCl
 
     private fun showGdprPopup(fragmentActivity: FragmentActivity) {
         d("it = [$fragmentActivity]")
-        val newInstance = GDPRDialogFragment.newInstance()
+        val newInstance = GDPRDialogFragment.newInstance(coreMainActivity.coreMainVM.gdprConfig)
         gdprDialogFragment = newInstance
         newInstance.show(
-            fragmentActivity.supportFragmentManager.beginTransaction().addToBackStack(null),
-            GDPR_POP_UP_TAG
+                fragmentActivity.supportFragmentManager.beginTransaction().addToBackStack(null),
+                GDPR_POP_UP_TAG
         )
         bindGdprFragment(newInstance)
     }
@@ -114,7 +114,7 @@ abstract class CoreSplashFragment : NetigenFragment(), GDPRDialogFragment.GDPRCl
         }
     }
 
-    override fun onConsentAccepted(personalizedAds: Boolean)  {
+    override fun onConsentAccepted(personalizedAds: Boolean) {
         d("personalizedAds = [$personalizedAds]")
         splashVM.setPersonalizedAds(personalizedAds)
     }
