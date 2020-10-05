@@ -10,8 +10,8 @@
         android:id="@+id/textView_translation_info_title"
         style="@style/DialogTitleTextView"
         android:text="@string/translation_information_title_netigen"
-        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintBottom_toTopOf="@id/textView_translation_info_content1"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

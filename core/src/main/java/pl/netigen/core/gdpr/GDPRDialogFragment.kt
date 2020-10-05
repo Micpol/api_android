@@ -6,7 +6,6 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
-import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
@@ -16,14 +15,26 @@ import android.view.ViewGroup
 import android.view.Window
 import android.webkit.WebView
 import android.widget.FrameLayout
-import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.fragment.app.activityViewModels
 import kotlinx.android.synthetic.main.dialog_fragment_gdpr.*
 import pl.netigen.core.R
+import pl.netigen.core.fragment.NetigenDialogFragment
+import pl.netigen.core.main.CoreMainActivity
+import pl.netigen.coreapi.gdpr.GDPRClickListener
 import pl.netigen.coreapi.gdpr.GDPRConfig
+import pl.netigen.coreapi.gdpr.IGDPRConsent
+import pl.netigen.coreapi.main.Store
+import pl.netigen.coreapi.splash.ISplashVM
+import pl.netigen.coreapi.splash.SplashVM
 import pl.netigen.extensions.setDialogSizeAsMatchParent
 import pl.netigen.extensions.setTint
 
-class GDPRDialogFragment : AppCompatDialogFragment() {
+/**
+ * Fragment for showing GDPR user consent, see [IGDPRConsent]
+ *
+ */
+class GDPRDialogFragment : NetigenDialogFragment() {
+    private val splashVM: ISplashVM by activityViewModels<SplashVM> { (requireActivity() as CoreMainActivity).viewModelFactory }
 
     companion object {
         private const val CONFIG_ID = "CONFIG_ID"
@@ -79,14 +90,13 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         if (activity == null) {
-            dismiss()
+            dismissAllowingStateLoss()
             return
         }
         setIcon()
 
-        appNameTextViewGdpr.text = getApplicationName(activity!!)
+        appNameTextViewGdpr.text = getApplicationName(requireActivity())
         setButtons()
         showGDPRText()
     }
@@ -123,7 +133,7 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
     private fun setButtons() {
         buttonYes.setOnClickListener {
             gdprClickListener?.onConsentAccepted(true)
-            dismiss()
+            dismissAllowingStateLoss()
         }
         buttonNo.setOnClickListener {
             showPrivacyPolicy()
@@ -145,7 +155,7 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
 
     private fun setIcon() {
         try {
-            val icon = activity?.packageManager?.getApplicationIcon(activity!!.packageName)
+            val icon = activity?.packageManager?.getApplicationIcon(requireActivity().packageName)
             appIconImageViewGdpr.setImageDrawable(icon)
         } catch (e: PackageManager.NameNotFoundException) {
             e.printStackTrace()
@@ -155,9 +165,8 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
     private fun getApplicationName(context: Context): String {
         val applicationInfo = context.applicationInfo
         val stringId = applicationInfo.labelRes
-        return if (stringId == 0) applicationInfo.nonLocalizedLabel.toString() else context.getString(
-                stringId
-        )
+        return if (stringId == 0) applicationInfo.nonLocalizedLabel.toString()
+        else context.getString(stringId)
     }
 
     fun setIsPayOptions(isNoAdsAvailable: Boolean) {
@@ -177,7 +186,7 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
         buttonBack.visibility = View.GONE
 
         admobText = true
-        if (isNetworkOn()) {
+        if (showOnlineVersion()) {
             offlinePrivacyPolicyTextView.visibility = View.GONE
             webViewGdpr?.visibility = View.VISIBLE
             webViewGdpr?.loadUrl(gdprConfig.gdprLink(context))
@@ -185,18 +194,8 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
             webViewGdpr?.visibility = View.GONE
             offlinePrivacyPolicyTextView.visibility = View.VISIBLE
             setOfflineText()
+            setScrollToOfflinePolicy()
         }
-    }
-
-    private fun isNetworkOn(): Boolean {
-        if (context == null) {
-            return false
-        }
-        val connectivityManager =
-                context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-                        ?: return false
-        val netInfo = connectivityManager.activeNetworkInfo
-        return netInfo != null && netInfo.isConnectedOrConnecting
     }
 
     private fun setOfflineText() {
@@ -212,7 +211,7 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
         buttonPolicy.visibility = View.VISIBLE
         buttonBack.visibility = View.VISIBLE
         admobText = false
-        if (isNetworkOn()) {
+        if (showOnlineVersion()) {
             offlinePrivacyPolicyTextView.visibility = View.GONE
             webViewGdpr?.visibility = View.VISIBLE
             webViewGdpr?.loadUrl(gdprConfig.privacyLink(context))
@@ -223,6 +222,8 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
             onNoInternetConnection()
         }
     }
+
+    private fun showOnlineVersion() = viewModel.isConnectedOrConnecting && splashVM.store != Store.HUAWEI
 
     private fun onNoInternetConnection() {
         offlinePrivacyPolicyTextView.append(gdprConfig.gdprOfflineText(context))
@@ -247,11 +248,11 @@ class GDPRDialogFragment : AppCompatDialogFragment() {
         this.gdprClickListener = gdprClickListener
     }
 
-    interface GDPRClickListener {
-        fun onConsentAccepted(personalizedAds: Boolean)
-
-        fun clickPay()
-    }
+//    interface GDPRClickListener {
+//        fun onConsentAccepted(personalizedAds: Boolean)
+//
+//        fun clickPay()
+//    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)

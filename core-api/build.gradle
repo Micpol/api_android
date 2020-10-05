@@ -3,10 +3,10 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'org.jetbrains.dokka'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion '28.0.3'
 
     defaultConfig {
         minSdkVersion 16
@@ -47,8 +47,6 @@ dependencies {
     api Libraries.legacySupportV13
 
     api Libraries.constraintLayout
-
-    api Libraries.consentLibrary
 
     api Libraries.material
 

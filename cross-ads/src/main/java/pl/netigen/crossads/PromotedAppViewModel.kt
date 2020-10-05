@@ -59,7 +59,7 @@ class PromotedAppViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-     fun preparePromotedIconPath(promotedIcon: PromotedAppModel): String {
+    fun preparePromotedIconPath(promotedIcon: PromotedAppModel): String {
         return BASE_URL + promotedIcon.iconLink!!
     }
 

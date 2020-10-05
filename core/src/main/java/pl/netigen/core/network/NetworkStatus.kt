@@ -17,8 +17,10 @@ class NetworkStatus(private val application: Application) : INetworkStatus {
     override val isConnectedOrConnecting: Boolean
         get() {
             val connectivityManager = getSystemService(application, ConnectivityManager::class.java)
+
             @Suppress("DEPRECATION")
-            val isConnectedOrConnecting = connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting ?: false
+            val isConnectedOrConnecting = connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting
+                    ?: false
             if (!isConnectedOrConnecting) {
                 postValue(false)
             }
@@ -35,8 +37,8 @@ class NetworkStatus(private val application: Application) : INetworkStatus {
         return try {
             val sock = Socket()
             val socketAddress: SocketAddress = InetSocketAddress(
-                GOOGLE_DNS_HOSTNAME,
-                GOOGLE_DNS_PORT
+                    GOOGLE_DNS_HOSTNAME,
+                    GOOGLE_DNS_PORT
             )
             sock.connect(socketAddress, CONNECTION_CHECK_TIMEOUT_MS)
             sock.close()

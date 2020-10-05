@@ -1,9 +1,5 @@
 package pl.netigen.core.gdpr
 
-import android.app.Activity
-import com.google.ads.consent.ConsentInformation
-import com.google.ads.consent.ConsentStatus
-
 object ConstGDPR {
     val HTTPS_ADS_SETTINGS_GOOGLE_COM = "https://adssettings.google.com"
     var textPolicy1 = "We are committed to protecting your information\n" +
@@ -186,16 +182,11 @@ object ConstGDPR {
 
     var text1 = "We care about your privacy and data security. We keep this app free by showing ads.\n\n"
     var text2 =
-        "Choose if you’d prefer to turn on ad personalization or turn it off.\n" + "- If ad personalization is turned off, Google won’t collect information to create an ad profile. You will still see ads, but they may not be as useful.\n"
+            "Choose if you’d prefer to turn on ad personalization or turn it off.\n" + "- If ad personalization is turned off, Google won’t collect information to create an ad profile. You will still see ads, but they may not be as useful.\n"
     var text3 = "You can change your choice anytime  in the app settings.\n\n"
     var text4 =
-        "Our partners will collect data and use a unique identifier on your device to show you ads.\n" + "Learn how and our partners collect and use data.\n\n"
+            "Our partners will collect data and use a unique identifier on your device to show you ads.\n" + "Learn how and our partners collect and use data.\n\n"
     var text5 = "Can we continue to use your data to tailor ads for you?"
     var isInEea: Boolean = false
 
-    fun resetGDPRConsent(activity: Activity) {
-        ConsentInformation.getInstance(activity).consentStatus = ConsentStatus.UNKNOWN
-        activity.finish()
-        activity.startActivity(activity.intent)
-    }
 }
